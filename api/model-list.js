@@ -1,4 +1,4 @@
-const manifest = require("../config/model-list.json");
+const { buildManifest } = require("../lib/manifest.cjs");
 
 function getOrigin(req) {
   const protocol = req.headers["x-forwarded-proto"] || "https";
@@ -16,6 +16,7 @@ module.exports = (req, res) => {
   }
 
   const origin = getOrigin(req);
+  const manifest = buildManifest();
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=3600");

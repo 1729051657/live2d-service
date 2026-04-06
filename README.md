@@ -2,8 +2,9 @@
 
 这是给 `live2d-web-widget` 配套的模型托管服务模板，目标是：
 
-- 你把自己的 Live2D 模型资源放进 `public/models/`
-- 修改 `config/model-list.json`
+- 你把自己的 Live2D 模型资源放进 `public/models/`（每个模型一个目录，根上有 `index.json`）
+- **模型列表由后端扫描目录自动生成**，`GET /api/model-list` 返回的 `models` 不依赖手写路径列表
+- 可选编辑 `config/model-list.json` 只填展示名、气泡文案等元数据
 - 直接部署到 Vercel
 - 前端 npm 插件只配置一个 `serviceUrl`
 
@@ -21,10 +22,28 @@
 
 Node 端可复用同一 HTTP 契约，使用前端 npm 包的子路径：`import { createLive2dServiceClient } from "live2d-web-widget/service-client"`（仓库见 **nodejs-plugin**）。
 
+## 本地运行（Node.js）
+
+`api/*.js` 是为 **Vercel Serverless** 写的处理函数；在本地要用 **Express** 包一层才能监听端口。
+
+```bash
+cd live2d-service
+npm install
+npm run dev
+```
+
+默认监听 **`http://127.0.0.1:3000`**（可用环境变量 **`PORT`** 修改）。浏览器或前端里把 `serviceUrl` 设为该地址即可。
+
+- `GET http://127.0.0.1:3000/api/model-list`
+- 静态资源：`http://127.0.0.1:3000/models/...`（对应 `public/models/`）
+
+线上 **Vercel** 仍按原样部署，不经过 `server.cjs`。
+
 ## 目录结构
 
 ```text
 live2d-service/
+├─ server.cjs          # 本地 Node 入口（Express）
 ├─ api/
 │  ├─ health.js
 │  ├─ hitokoto.js
@@ -32,7 +51,8 @@ live2d-service/
 │  ├─ next.js
 │  └─ random.js
 ├─ lib/
-│  └─ manifest.cjs
+│  ├─ manifest.cjs
+│  └─ scanModels.cjs
 ├─ config/
 │  └─ model-list.json
 ├─ public/
@@ -57,36 +77,33 @@ public/
          └─ motions/
 ```
 
-## 2. 修改模型清单
+## 2.（可选）元数据 `config/model-list.json`
 
-编辑 `config/model-list.json`：
+**不再手写 `models`。** 部署后服务端会扫描 `public/models/`，找出所有包含 `index.json` 的目录，按路径字典序排序后作为 `models` 数组返回给前端。
+
+可选配置文件只用于：
+
+- `serviceName`：服务展示名
+- `messages`：与 **扫描结果顺序一致** 的每条气泡文案（条数不足会补空字符串，多余会截断）
 
 ```json
 {
   "serviceName": "My Live2D Model Service",
-  "models": [
-    "characters/shizuku",
-    ["characters/uiharu", "characters/wed_16"]
-  ],
   "messages": [
-    "欢迎来到我的站点。",
-    "换个角色看看。"
+    "第一个模型的欢迎语",
+    "第二个模型的欢迎语"
   ]
 }
 ```
 
-说明：
-
-- `models` 里的路径都相对于 `/models/`
-- 字符串表示单个模型目录
-- 字符串数组表示同一组候选模型，前端会随机选一个
+若文件不存在或字段省略，会使用默认 `serviceName`，`messages` 为空串。
 
 ## 3. 部署到 Vercel
 
 推荐做法：
 
 1. 把这个目录单独发布成一个 GitHub 公共仓库
-2. 在仓库里上传模型资源和 `config/model-list.json`
+2. 在仓库里上传 `public/models/` 下的模型目录（可选再改 `config/model-list.json` 里的文案）
 3. 在 Vercel 导入该仓库并直接部署
 
 如果你准备把它做成公开模板仓库，可以在仓库 README 里放一键部署按钮：
@@ -120,6 +137,8 @@ createLive2DWidget({
 
 `GET /api/model-list`
 
+`models` 为运行时扫描 `public/models/` 得到的路径列表（相对 `/models/`，已排序）。`messages` 与 `config/model-list.json` 对齐到同一顺序。
+
 ```json
 {
   "serviceName": "My Live2D Model Service",
@@ -146,6 +165,7 @@ createLive2DWidget({
 
 ## 注意事项
 
+- 扫描结果有 **约 60 秒内存缓存**；新增/删除模型后，短时间内列表可能略滞后，之后会更新。
 - Vercel 默认可以直接托管静态文件，但这里额外加了 `vercel.json`，确保跨域访问模型资源时有 CORS 头。
 - 公开发布前，请确认模型资源拥有可分发权限。
 - 体积较大的模型建议做精简，避免仓库和部署包过大。
