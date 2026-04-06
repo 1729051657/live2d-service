@@ -1,0 +1,9 @@
+{
+  "serviceName": "My Live2D Model Service",
+  "models": [
+    "characters/example-model"
+  ],
+  "messages": [
+    "把你自己的模型部署到 Vercel 后，就可以在 npm 插件里直接配置 serviceUrl 了。"
+  ]
+}

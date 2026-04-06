@@ -1,0 +1,6 @@
+{
+  "name": "live2d-model-service-template",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Self-hosted Live2D model service template for Vercel deployments."
+}
