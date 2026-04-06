@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "description": "Self-hosted Live2D model service template for Vercel deployments.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1729051657/live2d-service.git"
+  },
+  "bugs": {
+    "url": "https://github.com/1729051657/live2d-service/issues"
+  },
+  "homepage": "https://github.com/1729051657/live2d-service#readme",
   "main": "server.cjs",
   "engines": {
     "node": ">=18"
