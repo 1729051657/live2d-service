@@ -1,26 +1,30 @@
 # Live2D Model Service Template
 
-这是给 `live2d-web-widget` 配套的模型托管服务模板，目标是：
+给 [`live2d-web-widget`](https://github.com/1729051657/nodejs-plugin) 用的模型托管服务：把模型放进 `public/models/` 并部署后，前端只需配置一个 `serviceUrl`。
 
-- 你把自己的 Live2D 模型资源放进 `public/models/`（每个模型一个目录，根上有 `index.json`）
-- **模型列表由后端扫描目录自动生成**，`GET /api/model-list` 返回的 `models` 不依赖手写路径列表
-- 可选编辑 `config/model-list.json` 只填展示名、气泡文案等元数据
-- 直接部署到 Vercel
-- 前端 npm 插件只配置一个 `serviceUrl`
+写法参考 [ourongxing/chatgpt-vercel](https://github.com/ourongxing/chatgpt-vercel) 的 README：**先讲一键部署，再讲 Fork 与本地维护**。
 
-部署完成后，插件会自动读取：
+## 部署到 Vercel
 
-- `GET /api/model-list`
-- 模型资源目录 `/models/...`
+如果你只需要先跑起来、不一定要在本地改代码，**完全可以不在本机安装依赖**，直接点下面按钮，按提示用 GitHub 登录并部署即可（默认**无需配置环境变量**；模型可以之后再往仓库里加，保存后重新部署）。
 
-与浏览器端工具栏配套的 **动态接口**（与 `live2d-web-widget` 默认 `serviceUrl` 行为一致）：
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/1729051657/live2d-service)
 
-- `GET /api/next?prev=<index>`：顺序下一款，返回 `nextIndex` 与 `message`
-- `GET /api/random?current=<index>`：随机另一款（尽量避免与当前相同）
-- `GET /api/hitokoto`：服务端代理一言（转发 `v1.hitokoto.cn`，便于统一 CORS）
-- `GET /api/health`：健康检查
+**说明**：按钮里的 `repository-url` 指向本仓库 [`1729051657/live2d-service`](https://github.com/1729051657/live2d-service)。若你要部署 **自己的 fork**，请 [Fork](https://github.com/1729051657/live2d-service/fork) 后，到 [Vercel 新建项目](https://vercel.com/new) 里 **Import Git Repository** 选择**你的**仓库（这样 `repository-url` 自然就是「你自己的项目地址」）。这和 [chatgpt-vercel](https://github.com/ourongxing/chatgpt-vercel) README 里「先 fork，再在 Vercel 导入自己的仓库」是同一套路。
 
-Node 端可复用同一 HTTP 契约，使用前端 npm 包的子路径：`import { createLive2dServiceClient } from "live2d-web-widget/service-client"`（仓库见 **nodejs-plugin**）。
+不过**只点上面按钮、不 fork** 时，不容易跟着本仓库更新；更推荐：**fork → 在 Vercel 导入你的 fork → 上游有更新时在 GitHub 点 `Sync fork` 再部署**。若你要改代码或大批量换模型，把仓库 `git clone` 到本地，改完 `git push` 即可触发重新部署；也可用 [Vercel CLI](https://vercel.com/cli)：`vercel deploy --prod`。
+
+---
+
+## 功能说明
+
+- 模型放在 `public/models/`，每个模型一个目录，根上有 `index.json`。
+- **模型列表由服务端扫描目录生成**，`GET /api/model-list` 不依赖手写路径列表。
+- 可选 `config/model-list.json`：只填 `serviceName`、与扫描顺序对齐的 `messages`。
+- 部署后前端通过 `serviceUrl` 访问：`/api/model-list`、`/models/...`。
+- 与看板娘工具栏配套：`/api/next`、`/api/random`、`/api/hitokoto`（一言代理）、`/api/health`。
+
+Node 端可复用同一套 HTTP：`import { createLive2dServiceClient } from "live2d-web-widget/service-client"`。
 
 ## 本地运行（Node.js）
 
@@ -98,25 +102,7 @@ public/
 
 若文件不存在或字段省略，会使用默认 `serviceName`，`messages` 为空串。
 
-## 3. 部署到 Vercel
-
-推荐做法：
-
-1. 把这个目录单独发布成一个 GitHub 公共仓库
-2. 在仓库里上传 `public/models/` 下的模型目录（可选再改 `config/model-list.json` 里的文案）
-3. 在 Vercel 导入该仓库并直接部署
-
-若要把本仓库当作**公开模板**给别人一键部署，README 里可直接使用下面按钮（`repository-url` 已指向本仓库的公开地址；fork 后请把路径里的 `1729051657` 换成你的 GitHub 用户名，或整段换成你 fork 后的仓库 URL）：
-
-```md
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2F1729051657%2Flive2d-service)
-```
-
-说明：`repository-url` 必须是 **HTTPS、可匿名 clone 的公开仓库地址**，形如 `https://github.com/<owner>/<repo>`。本模板对应：
-
-`https://github.com/1729051657/live2d-service`
-
-## 4. 前端插件接入
+## 3. 前端插件接入
 
 部署完成后，把下面示例里的 `serviceUrl` 换成你在 Vercel 上的实际域名（部署成功后控制台里可见）：
 
