@@ -31,6 +31,14 @@ for (const [routePath, handler] of routes) {
   app.all(routePath, handler);
 }
 
+const LEGACY_EXAMPLE_MODEL = "/models/characters/example-model";
+app.use((req, _res, next) => {
+  if (req.path === LEGACY_EXAMPLE_MODEL || req.path.startsWith(`${LEGACY_EXAMPLE_MODEL}/`)) {
+    req.url = req.url.replace(LEGACY_EXAMPLE_MODEL, "/models/uiharu");
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((err, _req, res, _next) => {

@@ -1,4 +1,14 @@
 {
+  "rewrites": [
+    {
+      "source": "/models/characters/example-model",
+      "destination": "/models/uiharu"
+    },
+    {
+      "source": "/models/characters/example-model/:path*",
+      "destination": "/models/uiharu/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
