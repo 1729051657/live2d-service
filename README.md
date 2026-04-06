@@ -1,34 +1,56 @@
-# Live2D Model Service Template
+# Live2D Model Service
 
-给 [`live2d-web-widget`](https://github.com/1729051657/nodejs-plugin) 用的模型托管服务：把模型放进 `public/models/` 并部署后，前端只需配置一个 `serviceUrl`。
+给浏览器端包 [**live2d-web-widget**](https://github.com/1729051657/live2d-web) 使用的 **模型托管 + HTTP API**：把模型放进 `public/models/` 并部署到 Vercel（或本地 Node）后，前端只需配置一个 **`serviceUrl`**。
 
-写法参考 [ourongxing/chatgpt-vercel](https://github.com/ourongxing/chatgpt-vercel) 的 README：**先讲一键部署，再讲 Fork 与本地维护**。
+| 项目 | 地址 |
+|------|------|
+| **本仓库（模型与 API）** | [github.com/1729051657/live2d-service](https://github.com/1729051657/live2d-service) |
+| **前端 npm 包（看板娘组件）** | [github.com/1729051657/live2d-web](https://github.com/1729051657/live2d-web) |
+| **npm** | [`live2d-web-widget`](https://www.npmjs.com/package/live2d-web-widget)（若已发布） |
 
-## 部署到 Vercel
+部署完成后，在页面里：
 
-如果你只需要先跑起来、不一定要在本地改代码，**完全可以不在本机安装依赖**，直接点下面按钮，按提示用 GitHub 登录并部署即可（默认**无需配置环境变量**；模型可以之后再往仓库里加，保存后重新部署）。
+```ts
+import { createLive2DWidget } from "live2d-web-widget";
+
+createLive2DWidget({
+  serviceUrl: "https://<你的部署域名>",
+  infoLink: "https://github.com/1729051657/live2d-service"
+});
+```
+
+更完整的参数与实例 API 见 [live2d-web README](https://github.com/1729051657/live2d-web#readme)。
+
+---
+
+## 一键部署到 Vercel
+
+若只需先跑通、不必在本机装依赖，可直接用下面按钮，按提示用 GitHub 登录并部署（默认**无需环境变量**；模型可后续加入仓库再重新部署）。
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/1729051657/live2d-service)
 
-**说明**：按钮里的 `repository-url` 指向本仓库 [`1729051657/live2d-service`](https://github.com/1729051657/live2d-service)。若你要部署 **自己的 fork**，请 [Fork](https://github.com/1729051657/live2d-service/fork) 后，到 [Vercel 新建项目](https://vercel.com/new) 里 **Import Git Repository** 选择**你的**仓库（这样 `repository-url` 自然就是「你自己的项目地址」）。这和 [chatgpt-vercel](https://github.com/ourongxing/chatgpt-vercel) README 里「先 fork，再在 Vercel 导入自己的仓库」是同一套路。
-
-不过**只点上面按钮、不 fork** 时，不容易跟着本仓库更新；更推荐：**fork → 在 Vercel 导入你的 fork → 上游有更新时在 GitHub 点 `Sync fork` 再部署**。若你要改代码或大批量换模型，把仓库 `git clone` 到本地，改完 `git push` 即可触发重新部署；也可用 [Vercel CLI](https://vercel.com/cli)：`vercel deploy --prod`。
+- 按钮中的 `repository-url` 指向本仓库。若要长期跟随更新，建议 **[Fork](https://github.com/1729051657/live2d-service/fork)** 后在 [Vercel 新建项目](https://vercel.com/new) 导入 **你的 fork**，与 [chatgpt-vercel](https://github.com/ourongxing/chatgpt-vercel) 类项目「先 fork 再导入」的方式一致。
+- 本地改代码或批量换模型：`git clone` → 修改 → `git push` 触发部署；或使用 [Vercel CLI](https://vercel.com/cli)：`vercel deploy --prod`。
 
 ---
 
 ## 功能说明
 
-- 模型放在 `public/models/`，每个模型一个目录，根上有 `index.json`。
-- **模型列表由服务端扫描目录生成**，`GET /api/model-list` 不依赖手写路径列表。
-- 可选 `config/model-list.json`：只填 `serviceName`、与扫描顺序对齐的 `messages`。
-- 部署后前端通过 `serviceUrl` 访问：`/api/model-list`、`/models/...`。
-- 与看板娘工具栏配套：`/api/next`、`/api/random`、`/api/hitokoto`（一言代理）、`/api/health`。
+- 模型位于 **`public/models/<模型目录>/`**，根目录需有 **`index.json`**（及 `.moc`、贴图等相对引用）。
+- **`GET /api/model-list`**：由服务端**扫描**目录生成模型列表，无需手写全部路径。
+- 可选 **`config/model-list.json`**：填写 `serviceName`、与扫描顺序一致的 `messages`（气泡文案）。
+- 静态资源通过 **`/models/...`** 提供；`vercel.json` 中已配置 **CORS**，便于浏览器跨域加载。
+- 工具栏配套 API：`/api/next`、`/api/random`、`/api/hitokoto`（一言代理）、`/api/health`。
 
-Node 端可复用同一套 HTTP：`import { createLive2dServiceClient } from "live2d-web-widget/service-client"`。
+Node 脚本或后端也可直接调同一套 HTTP，例如：
+
+`import { createLive2dServiceClient } from "live2d-web-widget/service-client"`（见 [live2d-web 文档](https://github.com/1729051657/live2d-web#node-%E7%AB%AF%E8%B0%83%E7%94%A8%E5%90%8C%E4%B8%80%E5%A5%97-api)）。
+
+---
 
 ## 本地运行（Node.js）
 
-`api/*.js` 是为 **Vercel Serverless** 写的处理函数；在本地要用 **Express** 包一层才能监听端口。
+`api/*.js` 面向 **Vercel Serverless**；本地通过 **`server.cjs`**（Express）监听端口。
 
 ```bash
 cd live2d-service
@@ -36,18 +58,20 @@ npm install
 npm run dev
 ```
 
-默认监听 **`http://127.0.0.1:3000`**（可用环境变量 **`PORT`** 修改）。浏览器或前端里把 `serviceUrl` 设为该地址即可。
+默认 **`http://127.0.0.1:3000`**（可用环境变量 **`PORT`** 修改）。前端将 `serviceUrl` 设为该地址即可联调。
 
 - `GET http://127.0.0.1:3000/api/model-list`
-- 静态资源：`http://127.0.0.1:3000/models/...`（对应 `public/models/`）
+- 静态模型：`http://127.0.0.1:3000/models/...` → `public/models/`
 
-线上 **Vercel** 仍按原样部署，不经过 `server.cjs`。
+线上 Vercel 部署不经过 `server.cjs`，由平台路由到 `api/*.js` 与静态文件。
+
+---
 
 ## 目录结构
 
 ```text
 live2d-service/
-├─ server.cjs          # 本地 Node 入口（Express）
+├─ server.cjs          # 本地 Express 入口
 ├─ api/
 │  ├─ health.js
 │  ├─ hitokoto.js
@@ -60,35 +84,34 @@ live2d-service/
 ├─ config/
 │  └─ model-list.json
 ├─ public/
-│  └─ models/
+│  └─ models/          # 每个子目录一个模型，含 index.json
 └─ vercel.json
 ```
 
-## 1. 放入模型资源
+---
 
-把你下载好的模型完整目录复制到 `public/models/` 下，保持 `index.json` 的相对引用结构不变。
+## 1. 放入模型
 
-例如：
+将完整模型目录复制到 `public/models/` 下，保持 **`index.json`** 内相对路径有效（例如 `moc/xxx.moc`、`textures/`）。
 
 ```text
 public/
 └─ models/
-   └─ characters/
-      └─ shizuku/
-         ├─ index.json
-         ├─ model.moc
-         ├─ textures/
-         └─ motions/
+   └─ my-character/
+      ├─ index.json
+      ├─ ...
 ```
 
-## 2.（可选）元数据 `config/model-list.json`
+部分偏高、易裁切的模型可在 **`index.json`** 中增加或调整 **`layout`**（如 `width`、`height`、`center_y`），与前端画布比例配合；细节以 Live2D/Cubism 2 模型说明为准。
 
-**不再手写 `models`。** 部署后服务端会扫描 `public/models/`，找出所有包含 `index.json` 的目录，按路径字典序排序后作为 `models` 数组返回给前端。
+---
 
-可选配置文件只用于：
+## 2.（可选）`config/model-list.json`
 
-- `serviceName`：服务展示名
-- `messages`：与 **扫描结果顺序一致** 的每条气泡文案（条数不足会补空字符串，多余会截断）
+**不必手写 `models` 列表**（由扫描生成）。本文件可选字段：
+
+- **`serviceName`**：服务展示名
+- **`messages`**：字符串数组，顺序与 **`/api/model-list` 返回的 `models` 扫描顺序**一致；条数不足会补空串，多余会截断
 
 ```json
 {
@@ -100,11 +123,13 @@ public/
 }
 ```
 
-若文件不存在或字段省略，会使用默认 `serviceName`，`messages` 为空串。
+若文件不存在，使用默认 `serviceName`，`messages` 可为空。
 
-## 3. 前端插件接入
+---
 
-部署完成后，把下面示例里的 `serviceUrl` 换成你在 Vercel 上的实际域名（部署成功后控制台里可见）：
+## 3. 前端接入示例
+
+将 `serviceUrl` 换成你的 Vercel 域名（部署后在控制台可见），例如：
 
 ```ts
 import { createLive2DWidget } from "live2d-web-widget";
@@ -115,38 +140,33 @@ createLive2DWidget({
 });
 ```
 
-组件默认会访问：
+组件会请求：
 
 - `${serviceUrl}/api/model-list`
 - `${serviceUrl}/models/...`
-- Next / Shuffle / Talk 分别请求 `api/next`、`api/random`、`api/hitokoto`（可通过 `useServiceNavigation: false` 关闭）
+
+Next / Shuffle / Talk → `api/next`、`api/random`、`api/hitokoto`；不需要时可设 `useServiceNavigation: false`。
+
+---
 
 ## API 返回格式
 
-`GET /api/model-list`
+### `GET /api/model-list`
 
-`models` 为运行时扫描 `public/models/` 得到的路径列表（相对 `/models/`，已排序）。`messages` 与 `config/model-list.json` 对齐到同一顺序。
+`models` 为扫描 `public/models/` 得到的目录名列表（已排序）。`modelBaseUrl` 由当前请求域名生成。
 
 ```json
 {
   "serviceName": "My Live2D Model Service",
-  "models": [
-    "chiaki_kitty",
-    "uiharu"
-  ],
-  "messages": [
-    "欢迎来到这里。",
-    "又见面啦。"
-  ],
+  "models": ["chiaki_kitty", "uiharu"],
+  "messages": ["欢迎来到这里。", "又见面啦。"],
   "modelBaseUrl": "https://live2d-service.vercel.app/models/"
 }
 ```
 
-（`models` 以 `GET /api/model-list` 为准；示例里用的是本仓库里真实存在的路径。实际响应里的 `modelBaseUrl` 由请求域名生成。）
+示例资源（若线上仍部署该路径）：[`.../models/uiharu/index.json`](https://live2d-service.vercel.app/models/uiharu/index.json)。
 
-可访问示例：`https://live2d-service.vercel.app/models/uiharu/index.json`。旧文档里的占位路径 `/models/characters/example-model/` 会 **重写** 到内置示例 `uiharu`（与线上 `vercel.json` 中 `rewrites` 一致；本地 `npm run dev` 同样支持）。
-
-`GET /api/next?prev=0` / `GET /api/random?current=0`
+### `GET /api/next?prev=0` / `GET /api/random?current=0`
 
 ```json
 {
@@ -155,12 +175,21 @@ createLive2DWidget({
 }
 ```
 
-`GET /api/hitokoto`：与 [一言](https://hitokoto.cn/) JSON 格式一致（代理失败时返回 `502` 与 `{ "error": "hitokoto_proxy_failed" }`）。
+### `GET /api/hitokoto`
+
+与 [一言](https://hitokoto.cn/) JSON 类似；代理失败时可能返回 `502` 与 `{ "error": "hitokoto_proxy_failed" }`。
+
+---
 
 ## 注意事项
 
-- 模型路径以 **`GET /api/model-list`** 返回的 `models` 为准，不要猜 `characters/example-model` 这类旧占位；该路径已 **301/内部重写** 到 `uiharu` 以免外链 404。
-- 扫描结果有 **约 60 秒内存缓存**；新增/删除模型后，短时间内列表可能略滞后，之后会更新。
-- Vercel 默认可以直接托管静态文件，但这里额外加了 `vercel.json`，确保跨域访问模型资源时有 CORS 头。
-- 公开发布前，请确认模型资源拥有可分发权限。
-- 体积较大的模型建议做精简，避免仓库和部署包过大。
+- 模型路径以 **`GET /api/model-list`** 为准；旧占位路径可能由 `vercel.json` **重写** 到示例模型，避免外链 404。
+- 列表有约 **60 秒**内存缓存；增删模型后短时间内列表可能略滞后。
+- 公开发布前请确认模型**授权与分发**合规；大模型建议精简以控制仓库与部署体积。
+
+---
+
+## 相关链接
+
+- 前端包与 API 文档：[1729051657/live2d-web](https://github.com/1729051657/live2d-web)
+- 本文档部署目标：本仓库 [1729051657/live2d-service](https://github.com/1729051657/live2d-service)
