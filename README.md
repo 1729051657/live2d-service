@@ -106,31 +106,33 @@ public/
 2. 在仓库里上传 `public/models/` 下的模型目录（可选再改 `config/model-list.json` 里的文案）
 3. 在 Vercel 导入该仓库并直接部署
 
-如果你准备把它做成公开模板仓库，可以在仓库 README 里放一键部署按钮：
+若要把本仓库当作**公开模板**给别人一键部署，README 里可直接使用下面按钮（`repository-url` 已指向本仓库的公开地址；fork 后请把路径里的 `1729051657` 换成你的 GitHub 用户名，或整段换成你 fork 后的仓库 URL）：
 
 ```md
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourname/live2d-model-service-template)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2F1729051657%2Flive2d-service)
 ```
 
-把 `yourname/live2d-model-service-template` 换成你自己的公开仓库地址即可。
+说明：`repository-url` 必须是 **HTTPS、可匿名 clone 的公开仓库地址**，形如 `https://github.com/<owner>/<repo>`。本模板对应：
+
+`https://github.com/1729051657/live2d-service`
 
 ## 4. 前端插件接入
 
-部署完成后，前端只需要配置服务地址：
+部署完成后，把下面示例里的 `serviceUrl` 换成你在 Vercel 上的实际域名（部署成功后控制台里可见）：
 
 ```ts
 import { createLive2DWidget } from "live2d-web-widget";
 
 createLive2DWidget({
-  serviceUrl: "https://your-live2d-service.vercel.app",
-  infoLink: "https://github.com/yourname/live2d-model-service-template"
+  serviceUrl: "https://live2d-service.vercel.app",
+  infoLink: "https://github.com/1729051657/live2d-service"
 });
 ```
 
 组件默认会访问：
 
-- `https://your-live2d-service.vercel.app/api/model-list`
-- `https://your-live2d-service.vercel.app/models/...`
+- `${serviceUrl}/api/model-list`
+- `${serviceUrl}/models/...`
 - Next / Shuffle / Talk 分别请求 `api/next`、`api/random`、`api/hitokoto`（可通过 `useServiceNavigation: false` 关闭）
 
 ## API 返回格式
@@ -148,9 +150,11 @@ createLive2DWidget({
   "messages": [
     "欢迎来到这里。"
   ],
-  "modelBaseUrl": "https://your-live2d-service.vercel.app/models/"
+  "modelBaseUrl": "https://live2d-service.vercel.app/models/"
 }
 ```
+
+（实际响应里的 `modelBaseUrl` 由请求的域名动态生成，部署在你自己的 Vercel 域名下即为 `https://<你的项目>.vercel.app/models/`。）
 
 `GET /api/next?prev=0` / `GET /api/random?current=0`
 
