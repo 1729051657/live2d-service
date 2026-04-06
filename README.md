@@ -131,16 +131,20 @@ createLive2DWidget({
 {
   "serviceName": "My Live2D Model Service",
   "models": [
-    "characters/shizuku"
+    "chiaki_kitty",
+    "uiharu"
   ],
   "messages": [
-    "欢迎来到这里。"
+    "欢迎来到这里。",
+    "又见面啦。"
   ],
   "modelBaseUrl": "https://live2d-service.vercel.app/models/"
 }
 ```
 
-（实际响应里的 `modelBaseUrl` 由请求的域名动态生成，部署在你自己的 Vercel 域名下即为 `https://<你的项目>.vercel.app/models/`。）
+（`models` 以 `GET /api/model-list` 为准；示例里用的是本仓库里真实存在的路径。实际响应里的 `modelBaseUrl` 由请求域名生成。）
+
+可访问示例：`https://live2d-service.vercel.app/models/uiharu/index.json`。旧文档里的占位路径 `/models/characters/example-model/` 会 **重写** 到内置示例 `uiharu`（与线上 `vercel.json` 中 `rewrites` 一致；本地 `npm run dev` 同样支持）。
 
 `GET /api/next?prev=0` / `GET /api/random?current=0`
 
@@ -155,6 +159,7 @@ createLive2DWidget({
 
 ## 注意事项
 
+- 模型路径以 **`GET /api/model-list`** 返回的 `models` 为准，不要猜 `characters/example-model` 这类旧占位；该路径已 **301/内部重写** 到 `uiharu` 以免外链 404。
 - 扫描结果有 **约 60 秒内存缓存**；新增/删除模型后，短时间内列表可能略滞后，之后会更新。
 - Vercel 默认可以直接托管静态文件，但这里额外加了 `vercel.json`，确保跨域访问模型资源时有 CORS 头。
 - 公开发布前，请确认模型资源拥有可分发权限。
